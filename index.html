@@ -33,16 +33,19 @@
     --radius: 14px;
   }
 
-  #app {
+ #app {
     width: 100%;
-    height: 100%;
-    max-width: 480px;
+    height: 100vh;
     margin: 0 auto;
-    position: relative;
     background: linear-gradient(180deg, #2b3a67 0%, #1a1a2e 100%);
     overflow: hidden;
-  }
+}
 
+@media (min-width: 768px) {
+    #app {
+        max-width: 480px;
+    }
+}
   .screen {
     position: absolute;
     inset: 0;
