@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Desafio de Aniversário</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  /* ============================= RESET & BASE ============================= */
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'VT323', monospace;
+    background: #1a1a2e;
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  :root {
+    --gb-dark: #1a1a2e;
+    --gb-panel: #f8f8f0;
+    --gb-panel-border: #3b4252;
+    --gb-blue: #3b6ea5;
+    --gb-blue-dark: #274b73;
+    --gb-red: #d94141;
+    --gb-green: #4caf50;
+    --gb-yellow: #f4d35e;
+    --gb-text: #2b2b2b;
+    --gb-hp-green: #78c850;
+    --gb-hp-yellow: #f0c020;
+    --gb-hp-red: #e03028;
+    --radius: 14px;
+  }
+
+  #app {
+    width: 100%;
+    height: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    background: linear-gradient(180deg, #2b3a67 0%, #1a1a2e 100%);
+    overflow: hidden;
+  }
+
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  .screen.active { display: flex; }
+
+  .pixel-title {
+    font-family: 'Press Start 2P', monospace;
+    color: var(--gb-yellow);
+    text-shadow: 2px 2px 0 #7a4a1a, 4px 4px 0 rgba(0,0,0,0.3);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  button {
+    font-family: 'Press Start 2P', monospace;
+    cursor: pointer;
+    border: none;
+    outline: none;
+  }
+
+  .btn {
+    background: var(--gb-red);
+    color: #fff;
+    padding: 14px 20px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    border-bottom: 4px solid #8a1f1f;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 0.08s ease;
+  }
+  .btn:active { transform: translateY(3px); border-bottom-width: 1px; }
+  .btn:disabled { background: #888; border-bottom-color: #555; cursor: not-allowed; opacity: 0.6; }
+
+  /* ============================= TELA 1: INTRO ============================= */
+  #screen-intro {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(255,255,255,0.08), transparent 60%),
+      linear-gradient(180deg, #2b3a67 0%, #1a1a2e 100%);
+    gap: 28px;
+  }
+  .intro-sprite-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    opacity: 0;
+    animation: introFadeIn 1.2s ease forwards 0.2s;
+  }
+  .intro-sprite-row img {
+    width: 56px; height: 56px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 6px 6px rgba(0,0,0,0.4));
+    animation: floatSprite 2.4s ease-in-out infinite;
+  }
+  .intro-sprite-row img:nth-child(2) { animation-delay: 0.3s; }
+  .intro-sprite-row img:nth-child(3) { animation-delay: 0.6s; }
+
+  @keyframes floatSprite {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes introFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .dialogue-box {
+    background: var(--gb-panel);
+    border: 4px solid var(--gb-panel-border);
+    border-radius: var(--radius);
+    padding: 18px;
+    color: var(--gb-text);
+    font-size: 20px;
+    line-height: 1.5;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+    max-width: 90%;
+    opacity: 0;
+    animation: introFadeIn 1s ease forwards 0.8s;
+  }
+
+  #btn-start-wrap { opacity: 0; animation: introFadeIn 1s ease forwards 1.4s; }
+
+  /* ============================= TELA 2: SELEÇÃO ============================= */
+  #screen-select { gap: 12px; }
+  .select-header { text-align: center; }
+  .select-header h2 { font-size: 13px; margin: 0 0 6px; }
+  .select-counter {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--gb-yellow);
+    text-align: center;
+  }
+
+  .pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 10px;
+  }
+
+  .poke-card {
+    background: var(--gb-panel);
+    border: 3px solid var(--gb-panel-border);
+    border-radius: var(--radius);
+    padding: 8px;
+    color: var(--gb-text);
+    position: relative;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .poke-card.selected {
+    border-color: var(--gb-yellow);
+    box-shadow: 0 0 0 3px var(--gb-yellow), 0 6px 0 rgba(0,0,0,0.2);
+    transform: translateY(-3px);
+  }
+  .poke-card.disabled { opacity: 0.35; pointer-events: none; }
+  .poke-card img {
+    width: 64px; height: 64px;
+    display: block;
+    margin: 0 auto;
+    image-rendering: pixelated;
+  }
+  .poke-card .p-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    text-align: center;
+    margin: 4px 0;
+  }
+  .poke-types { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin-bottom: 4px; }
+  .type-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'VT323', monospace;
+  }
+  .poke-stats {
+    font-size: 14px;
+    line-height: 1.3;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 6px;
+  }
+  .poke-stats span b { color: var(--gb-blue-dark); }
+
+  #btn-confirm-wrap { text-align: center; padding-top: 8px; }
+
+  /* ============================= TELA 3: BATALHA ============================= */
+  #screen-battle {
+    padding: 10px;
+    gap: 8px;
+    background:
+      linear-gradient(180deg, #6fa8dc 0%, #a3d9a5 55%, #7fbf7f 100%);
+  }
+  .battle-field {
+    position: relative;
+    flex: 1;
+    min-height: 240px;
+  }
+  .combatant {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 46%;
+  }
+  #rival-combatant { top: 4%; right: 2%; align-items: flex-start; }
+  #player-combatant { bottom: 2%; left: 2%; align-items: flex-start; }
+
+  .status-panel {
+    background: var(--gb-panel);
+    border: 3px solid var(--gb-panel-border);
+    border-radius: 10px;
+    padding: 6px 10px;
+    width: 100%;
+    color: var(--gb-text);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+  }
+  .status-panel .name-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    margin-bottom: 4px;
+  }
+  .hp-bar-bg {
+    background: #444;
+    border-radius: 6px;
+    height: 8px;
+    overflow: hidden;
+    border: 1px solid #222;
+  }
+  .hp-bar-fill {
+    height: 100%;
+    background: var(--gb-hp-green);
+    width: 100%;
+    transition: width 0.6s ease, background 0.6s ease;
+  }
+  .hp-numbers { font-size: 13px; text-align: right; margin-top: 2px; }
+  .status-tag {
+    display: inline-block;
+    font-size: 10px;
+    background: var(--gb-red);
+    color: #fff;
+    border-radius: 6px;
+    padding: 1px 5px;
+    margin-left: 4px;
+  }
+
+  .sprite-wrap { position: relative; height: 90px; width: 90px; margin-top: 4px; }
+  .sprite-wrap img {
+    width: 90px; height: 90px;
+    image-rendering: pixelated;
+    filter: drop-shadow(4px 6px 4px rgba(0,0,0,0.35));
+  }
+
+  @keyframes attackLungeRight { 0%{transform:translateX(0)} 40%{transform:translateX(-18px)} 100%{transform:translateX(0)} }
+  @keyframes attackLungeLeft { 0%{transform:translateX(0)} 40%{transform:translateX(18px)} 100%{transform:translateX(0)} }
+  @keyframes hitShake {
+    0%,100% { transform: translateX(0); filter: brightness(1); }
+    20% { transform: translateX(-6px); filter: brightness(2) saturate(3); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  @keyframes faintDrop {
+    to { transform: translateY(60px); opacity: 0; }
+  }
+  .anim-attack-player img { animation: attackLungeRight 0.4s ease; }
+  .anim-attack-rival img { animation: attackLungeLeft 0.4s ease; }
+  .anim-hit img { animation: hitShake 0.4s ease; }
+  .anim-faint img { animation: faintDrop 0.6s ease forwards; }
+
+  #battle-dialogue {
+    background: var(--gb-panel);
+    border: 4px solid var(--gb-panel-border);
+    border-radius: var(--radius);
+    min-height: 70px;
+    padding: 12px 14px;
+    color: var(--gb-text);
+    font-size: 19px;
+    line-height: 1.35;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.25);
+  }
+
+  #move-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .move-btn {
+    background: var(--gb-blue);
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 6px;
+    font-size: 10px;
+    line-height: 1.4;
+    border-bottom: 3px solid var(--gb-blue-dark);
+    text-align: left;
+  }
+  .move-btn:active { transform: translateY(2px); border-bottom-width: 1px; }
+  .move-btn .m-meta { font-family: 'VT323', monospace; font-size: 13px; opacity: 0.85; display:block; margin-top:3px; }
+  .move-btn.hidden-panel { visibility: hidden; }
+
+  /* ============================= TELA 4: VITÓRIA ============================= */
+  #screen-victory {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    background: radial-gradient(circle at 50% 30%, #ffe08a, #f4a63a 70%);
+    position: relative;
+  }
+  .victory-msg {
+    background: var(--gb-panel);
+    border: 4px solid var(--gb-panel-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    color: var(--gb-text);
+    font-size: 20px;
+    line-height: 1.5;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+    max-width: 90%;
+    z-index: 2;
+  }
+  .victory-title { font-size: 16px; z-index: 2; }
+
+  .confetti {
+    position: absolute;
+    top: -10px;
+    width: 8px; height: 14px;
+    opacity: 0.95;
+    animation: confettiFall linear forwards;
+    z-index: 1;
+  }
+  @keyframes confettiFall {
+    to { transform: translateY(110vh) rotate(540deg); opacity: 0.3; }
+  }
+
+  /* ============================= TELA 5: DERROTA ============================= */
+  #screen-defeat {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    background: radial-gradient(circle at 50% 30%, #4a4a5e, #1a1a2e 75%);
+  }
+  .defeat-sprite {
+    width: 90px; height: 90px;
+    image-rendering: pixelated;
+    opacity: 0;
+    animation: defeatDrop 1s ease forwards 0.2s;
+    filter: grayscale(0.6) drop-shadow(0 8px 6px rgba(0,0,0,0.5));
+  }
+  @keyframes defeatDrop {
+    from { opacity: 0; transform: translateY(-30px) rotate(0deg); }
+    60% { opacity: 1; transform: translateY(6px) rotate(8deg); }
+    100% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  }
+  .defeat-msg {
+    background: var(--gb-panel);
+    border: 4px solid var(--gb-panel-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    color: var(--gb-text);
+    font-size: 20px;
+    line-height: 1.5;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+    max-width: 90%;
+    opacity: 0;
+    animation: introFadeIn 0.8s ease forwards 0.6s;
+  }
+  .defeat-title {
+    font-size: 15px;
+    color: #ff6b6b;
+    text-shadow: 2px 2px 0 #4a1010, 4px 4px 0 rgba(0,0,0,0.4);
+    opacity: 0;
+    animation: introFadeIn 0.8s ease forwards 0.1s;
+  }
+  #btn-retry-wrap { opacity: 0; animation: introFadeIn 0.8s ease forwards 1.1s; }
+
+  /* Scrollbar discreta */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ======================= TELA 1: INTRO ======================= -->
+  <section id="screen-intro" class="screen active">
+    <div class="intro-sprite-row" id="intro-sprites"></div>
+    <h1 class="pixel-title" style="font-size:16px;">DESAFIO DE<br>ANIVERSÁRIO</h1>
+    <p class="dialogue-box" id="intro-text">
+      Feliz aniversário!... Ou melhor... antes precisamos descobrir se você merece esse feliz aniversário.
+    </p>
+    <div id="btn-start-wrap">
+      <button class="btn" id="btn-start">Iniciar</button>
+    </div>
+  </section>
+
+  <!-- ======================= TELA 2: SELEÇÃO ======================= -->
+  <section id="screen-select" class="screen">
+    <div class="select-header">
+      <h2 class="pixel-title">ESCOLHA SUA EQUIPE</h2>
+      <div class="select-counter" id="select-counter">0 / 3 escolhidos</div>
+    </div>
+    <div class="pokemon-grid" id="pokemon-grid"></div>
+    <div id="btn-confirm-wrap">
+      <button class="btn" id="btn-confirm" disabled>Confirmar equipe</button>
+    </div>
+  </section>
+
+  <!-- ======================= TELA 3: BATALHA ======================= -->
+  <section id="screen-battle" class="screen">
+    <div class="battle-field">
+      <div class="combatant" id="rival-combatant">
+        <div class="status-panel">
+          <div class="name-row"><span id="rival-name">---</span><span id="rival-lv">Nv. 50</span></div>
+          <div class="hp-bar-bg"><div class="hp-bar-fill" id="rival-hp-fill"></div></div>
+          <div class="hp-numbers" id="rival-hp-text"></div>
+        </div>
+        <div class="sprite-wrap"><img id="rival-sprite" src="" alt="Pokémon rival"></div>
+      </div>
+
+      <div class="combatant" id="player-combatant">
+        <div class="sprite-wrap"><img id="player-sprite" src="" alt="Seu Pokémon"></div>
+        <div class="status-panel">
+          <div class="name-row"><span id="player-name">---</span><span id="player-lv">Nv. 50</span></div>
+          <div class="hp-bar-bg"><div class="hp-bar-fill" id="player-hp-fill"></div></div>
+          <div class="hp-numbers" id="player-hp-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="battle-dialogue">...</div>
+
+    <div id="move-panel"></div>
+  </section>
+
+  <!-- ======================= TELA 4: DERROTA ======================= -->
+  <section id="screen-defeat" class="screen">
+    <img class="defeat-sprite" id="defeat-sprite" src="" alt="Pokémon desmaiado">
+    <h2 class="pixel-title defeat-title">VOCÊ PERDEU...</h2>
+    <p class="defeat-msg" id="defeat-message">
+      Não foi dessa vez. Parece que você ainda não merece o feliz aniversário... tenta de novo!
+    </p>
+    <div id="btn-retry-wrap">
+      <button class="btn" id="btn-retry">Tentar novamente</button>
+    </div>
+  </section>
+
+  <!-- ======================= TELA 4: VITÓRIA ======================= -->
+  <section id="screen-victory" class="screen">
+    <h2 class="pixel-title victory-title">VOCÊ VENCEU!</h2>
+    <p class="victory-msg" id="victory-message"></p>
+    <button class="btn" id="btn-replay" style="z-index:2;">Jogar novamente</button>
+  </section>
+
+</div>
+
+<script>
+/* ==========================================================================
+   DADOS DO JOGO
+   Para adicionar/editar um Pokémon, basta mexer neste objeto.
+   ========================================================================== */
+
+const TYPE_COLORS = {
+  'Fogo': '#e0654a', 'Água': '#4a90d9', 'Grama': '#5cb85c', 'Elétrico': '#e0c23e',
+  'Psíquico': '#e070a0', 'Lutador': '#c2543a', 'Sombrio': '#5a5266', 'Fantasma': '#6e5a9e',
+  'Dragão': '#6a5ce0', 'Voador': '#8fa8e0', 'Inseto': '#9ec13a', 'Aço': '#8f9aa8',
+  'Fada': '#eb98c4', 'Pedra': '#b8a45a', 'Veneno': '#a35ac1', 'Chão': '#c9a35a', 'Normal': '#9a9a80'
+};
+
+// Tabela de efetividade de tipos (apenas os tipos usados no jogo)
+const TYPE_CHART = {
+  'Fogo':      { 'Grama':2, 'Inseto':2, 'Aço':2, 'Água':0.5, 'Pedra':0.5, 'Fogo':0.5, 'Dragão':0.5 },
+  'Água':      { 'Fogo':2, 'Pedra':2, 'Chão':2, 'Grama':0.5, 'Dragão':0.5, 'Água':0.5 },
+  'Grama':     { 'Água':2, 'Pedra':2, 'Chão':2, 'Fogo':0.5, 'Voador':0.5, 'Inseto':0.5, 'Veneno':0.5, 'Aço':0.5, 'Grama':0.5, 'Dragão':0.5 },
+  'Elétrico':  { 'Água':2, 'Voador':2, 'Chão':0, 'Grama':0.5, 'Elétrico':0.5, 'Dragão':0.5 },
+  'Psíquico':  { 'Lutador':2, 'Veneno':2, 'Sombrio':0, 'Aço':0.5, 'Psíquico':0.5 },
+  'Lutador':   { 'Normal':2, 'Pedra':2, 'Sombrio':2, 'Aço':2, 'Voador':0.5, 'Psíquico':0.5, 'Fada':0.5, 'Veneno':0.5, 'Fantasma':0 },
+  'Sombrio':   { 'Psíquico':2, 'Fantasma':2, 'Lutador':0.5, 'Fada':0.5, 'Sombrio':0.5 },
+  'Fantasma':  { 'Psíquico':2, 'Fantasma':2, 'Sombrio':0.5, 'Normal':0 },
+  'Dragão':    { 'Dragão':2, 'Aço':0.5, 'Fada':0 },
+  'Voador':    { 'Grama':2, 'Lutador':2, 'Inseto':2, 'Elétrico':0.5, 'Pedra':0.5, 'Aço':0.5 },
+  'Inseto':    { 'Grama':2, 'Psíquico':2, 'Sombrio':2, 'Fogo':0.5, 'Voador':0.5, 'Pedra':0.5, 'Veneno':0.5, 'Aço':0.5, 'Fada':0.5, 'Lutador':0.5 },
+  'Aço':       { 'Pedra':2, 'Fada':2, 'Fogo':0.5, 'Lutador':0.5, 'Chão':0.5, 'Aço':0.5 },
+  'Fada':      { 'Lutador':2, 'Dragão':2, 'Sombrio':2, 'Fogo':0.5, 'Veneno':0.5, 'Aço':0.5 },
+  'Pedra':     { 'Fogo':2, 'Voador':2, 'Inseto':2, 'Água':0.5, 'Grama':0.5, 'Lutador':0.5, 'Chão':0.5, 'Aço':0.5 },
+  'Veneno':    { 'Grama':2, 'Fada':2, 'Chão':0.5, 'Psíquico':0.5, 'Pedra':0.5, 'Fantasma':0.5 },
+  'Chão':      { 'Fogo':2, 'Elétrico':2, 'Veneno':2, 'Pedra':2, 'Aço':2, 'Voador':0, 'Grama':0.5, 'Inseto':0.5 },
+  'Normal':    { 'Pedra':0.5, 'Aço':0.5, 'Fantasma':0 }
+};
+
+const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/heartgold-soulsilver/';
+const SPRITE_FALLBACK_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+
+// Pokémon que não existem no set de sprites HGSS (são de gerações mais novas)
+// usam o sprite padrão em vez do estilo HeartGold/SoulSilver.
+const SPRITE_USE_FALLBACK = [658, 700]; // Greninja, Sylveon
+
+function spriteUrl(dexId, back) {
+  const base = SPRITE_USE_FALLBACK.includes(dexId) ? SPRITE_FALLBACK_BASE : SPRITE_BASE;
+  return base + (back ? 'back/' : '') + dexId + '.png';
+}
+
+// Banco de dados de Pokémon disponíveis no jogo
+const POKEMON_DB = {
+  charizard: { name: 'Charizard', dexId: 6, types: ['Fogo', 'Voador'], hp: 168, atk: 84, def: 78, spd: 100,
+    moves: [
+      { name: 'Lança-Chamas', type: 'Fogo', power: 90, accuracy: 100 },
+      { name: 'Voo', type: 'Voador', power: 85, accuracy: 95 },
+      { name: 'Garra de Dragão', type: 'Dragão', power: 80, accuracy: 100 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  greninja: { name: 'Greninja', dexId: 658, types: ['Água', 'Sombrio'], hp: 142, atk: 103, def: 67, spd: 122,
+    moves: [
+      { name: 'Hidrobomba', type: 'Água', power: 100, accuracy: 80 },
+      { name: 'Shuriken das Sombras', type: 'Sombrio', power: 80, accuracy: 100 },
+      { name: 'Surf', type: 'Água', power: 75, accuracy: 100 },
+      { name: 'Corte', type: 'Normal', power: 50, accuracy: 95 }
+    ]},
+  lucario: { name: 'Lucario', dexId: 448, types: ['Lutador', 'Aço'], hp: 140, atk: 110, def: 70, spd: 90,
+    moves: [
+      { name: 'Esfera Aural', type: 'Lutador', power: 90, accuracy: 100 },
+      { name: 'Punho de Ferro', type: 'Aço', power: 75, accuracy: 100 },
+      { name: 'Golpe Sombrio', type: 'Sombrio', power: 65, accuracy: 100 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  gardevoir: { name: 'Gardevoir', dexId: 282, types: ['Psíquico', 'Fada'], hp: 136, atk: 65, def: 68, spd: 80,
+    moves: [
+      { name: 'Psíquico', type: 'Psíquico', power: 90, accuracy: 100 },
+      { name: 'Vendaval Feérico', type: 'Fada', power: 90, accuracy: 95 },
+      { name: 'Hipnose', type: 'Psíquico', power: 0, accuracy: 60, effect: { status: 'sleep', chance: 100 } },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  luxray: { name: 'Luxray', dexId: 405, types: ['Elétrico'], hp: 150, atk: 120, def: 79, spd: 70,
+    moves: [
+      { name: 'Trovão', type: 'Elétrico', power: 90, accuracy: 90, effect: { status: 'paralysis', chance: 20 } },
+      { name: 'Presas de Choque', type: 'Elétrico', power: 65, accuracy: 95, effect: { status: 'paralysis', chance: 10 } },
+      { name: 'Mordida', type: 'Sombrio', power: 60, accuracy: 100 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  leafeon: { name: 'Leafeon', dexId: 470, types: ['Grama'], hp: 130, atk: 110, def: 130, spd: 95,
+    moves: [
+      { name: 'Folha Navalha', type: 'Grama', power: 75, accuracy: 100 },
+      { name: 'Investida Selvagem', type: 'Normal', power: 85, accuracy: 100 },
+      { name: 'Chicote de Vinha', type: 'Grama', power: 65, accuracy: 100 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  dragonite: { name: 'Dragonite', dexId: 149, types: ['Dragão', 'Voador'], hp: 182, atk: 134, def: 95, spd: 80,
+    moves: [
+      { name: 'Fúria Dracônica', type: 'Dragão', power: 85, accuracy: 100 },
+      { name: 'Investida Aérea', type: 'Voador', power: 80, accuracy: 95 },
+      { name: 'Investida Poderosa', type: 'Normal', power: 95, accuracy: 90 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  gengar: { name: 'Gengar', dexId: 94, types: ['Fantasma', 'Veneno'], hp: 120, atk: 65, def: 60, spd: 130,
+    moves: [
+      { name: 'Bola Sombria', type: 'Fantasma', power: 80, accuracy: 100 },
+      { name: 'Lança-Lodo', type: 'Veneno', power: 65, accuracy: 100, effect: { status: 'poison', chance: 30 } },
+      { name: 'Grito Fantasma', type: 'Fantasma', power: 0, accuracy: 75, effect: { status: 'sleep', chance: 100 } },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  garchomp: { name: 'Garchomp', dexId: 445, types: ['Dragão', 'Chão'], hp: 170, atk: 130, def: 95, spd: 102,
+    moves: [
+      { name: 'Terremoto', type: 'Chão', power: 100, accuracy: 100 },
+      { name: 'Garra de Dragão', type: 'Dragão', power: 80, accuracy: 100 },
+      { name: 'Fúria de Areia', type: 'Chão', power: 70, accuracy: 100 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  metagross: { name: 'Metagross', dexId: 376, types: ['Aço', 'Psíquico'], hp: 180, atk: 135, def: 130, spd: 70,
+    moves: [
+      { name: 'Punho Meteoro', type: 'Aço', power: 90, accuracy: 90 },
+      { name: 'Psíquico', type: 'Psíquico', power: 90, accuracy: 100 },
+      { name: 'Cabeçada de Ferro', type: 'Aço', power: 80, accuracy: 100 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  tyranitar: { name: 'Tyranitar', dexId: 248, types: ['Pedra', 'Sombrio'], hp: 200, atk: 134, def: 110, spd: 61,
+    moves: [
+      { name: 'Avalanche de Pedras', type: 'Pedra', power: 90, accuracy: 90 },
+      { name: 'Investida Sombria', type: 'Sombrio', power: 80, accuracy: 100 },
+      { name: 'Triturar', type: 'Sombrio', power: 70, accuracy: 100 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  arcanine: { name: 'Arcanine', dexId: 59, types: ['Fogo'], hp: 170, atk: 110, def: 80, spd: 95,
+    moves: [
+      { name: 'Lança-Chamas', type: 'Fogo', power: 90, accuracy: 100 },
+      { name: 'Presas de Fogo', type: 'Fogo', power: 65, accuracy: 95, effect: { status: 'paralysis', chance: 10 } },
+      { name: 'Ataque Rápido', type: 'Normal', power: 40, accuracy: 100 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  scizor: { name: 'Scizor', dexId: 212, types: ['Inseto', 'Aço'], hp: 170, atk: 130, def: 100, spd: 65,
+    moves: [
+      { name: 'Golpe de Metal', type: 'Aço', power: 80, accuracy: 100 },
+      { name: 'Corte X', type: 'Inseto', power: 85, accuracy: 100 },
+      { name: 'Investida Ágil', type: 'Aço', power: 60, accuracy: 100 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  sylveon: { name: 'Sylveon', dexId: 700, types: ['Fada'], hp: 160, atk: 65, def: 65, spd: 60,
+    moves: [
+      { name: 'Vendaval Feérico', type: 'Fada', power: 90, accuracy: 95 },
+      { name: 'Fúria Fofa', type: 'Fada', power: 70, accuracy: 100 },
+      { name: 'Voz Encantada', type: 'Fada', power: 60, accuracy: 100, effect: { status: 'atkDown', chance: 30 } },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]}
+};
+
+// Equipe padrão do rival (6 possíveis, 3 serão sorteados)
+const RIVAL_DEFAULT_TEAM = ['garchomp', 'metagross', 'tyranitar', 'dragonite', 'gengar', 'arcanine'];
+
+/* ==========================================================================
+   ESTADO DO JOGO
+   ========================================================================== */
+
+const state = {
+  playerTeamKeys: [],      // chaves escolhidas pelo jogador (máx 3)
+  rivalTeamKeys: [],       // chaves sorteadas para o rival
+  playerParty: [],         // instâncias de batalha do jogador
+  rivalParty: [],          // instâncias de batalha do rival
+  playerActiveIndex: 0,
+  rivalActiveIndex: 0,
+  battleLocked: false      // trava os botões durante animações
+};
+
+/* ==========================================================================
+   HELPERS GERAIS
+   ========================================================================== */
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function shuffle(array) {
+  const arr = array.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function typeBadgesHtml(types) {
+  return types.map(t => `<span class="type-badge" style="background:${TYPE_COLORS[t]}">${t}</span>`).join('');
+}
+
+/* ==========================================================================
+   TELA 1: INTRO
+   ========================================================================== */
+
+function initIntro() {
+  const introKeys = ['charizard', 'gardevoir', 'lucario'];
+  const row = document.getElementById('intro-sprites');
+  row.innerHTML = introKeys.map(k => {
+    const p = POKEMON_DB[k];
+    return `<img src="${spriteUrl(p.dexId, false)}" alt="${p.name}">`;
+  }).join('');
+
+  document.getElementById('btn-start').addEventListener('click', () => {
+    showScreen('screen-select');
+    renderPokemonGrid();
+  });
+}
+
+/* ==========================================================================
+   TELA 2: SELEÇÃO DE EQUIPE
+   ========================================================================== */
+
+function renderPokemonGrid() {
+  const grid = document.getElementById('pokemon-grid');
+  grid.innerHTML = '';
+
+  Object.keys(POKEMON_DB).forEach(key => {
+    const p = POKEMON_DB[key];
+    const card = document.createElement('div');
+    card.className = 'poke-card';
+    card.dataset.key = key;
+    card.innerHTML = `
+      <img src="${spriteUrl(p.dexId, false)}" alt="${p.name}">
+      <div class="p-name">${p.name}</div>
+      <div class="poke-types">${typeBadgesHtml(p.types)}</div>
+      <div class="poke-stats">
+        <span>HP <b>${p.hp}</b></span>
+        <span>Atq <b>${p.atk}</b></span>
+        <span>Def <b>${p.def}</b></span>
+        <span>Vel <b>${p.spd}</b></span>
+      </div>
+    `;
+    card.addEventListener('click', () => togglePokemonSelect(key, card));
+    grid.appendChild(card);
+  });
+
+  updateSelectionUI();
+}
+
+function togglePokemonSelect(key, cardEl) {
+  const idx = state.playerTeamKeys.indexOf(key);
+  if (idx >= 0) {
+    state.playerTeamKeys.splice(idx, 1);
+  } else {
+    if (state.playerTeamKeys.length >= 3) return;
+    state.playerTeamKeys.push(key);
+  }
+  updateSelectionUI();
+}
+
+function updateSelectionUI() {
+  document.querySelectorAll('.poke-card').forEach(card => {
+    const key = card.dataset.key;
+    const selected = state.playerTeamKeys.includes(key);
+    card.classList.toggle('selected', selected);
+    card.classList.toggle('disabled', !selected && state.playerTeamKeys.length >= 3);
+  });
+
+  document.getElementById('select-counter').textContent = `${state.playerTeamKeys.length} / 3 escolhidos`;
+  document.getElementById('btn-confirm').disabled = state.playerTeamKeys.length !== 3;
+}
+
+document.getElementById('btn-confirm').addEventListener('click', () => {
+  if (state.playerTeamKeys.length !== 3) return;
+  buildRivalTeam();
+  setupBattleParties();
+  showScreen('screen-battle');
+  startBattle();
+});
+
+/* ==========================================================================
+   MONTAGEM DA EQUIPE DO RIVAL
+   ========================================================================== */
+
+function buildRivalTeam() {
+  // Remove da lista padrão qualquer Pokémon já escolhido pelo jogador
+  const available = RIVAL_DEFAULT_TEAM.filter(k => !state.playerTeamKeys.includes(k));
+  state.rivalTeamKeys = shuffle(available).slice(0, 3);
+}
+
+/* ==========================================================================
+   INSTÂNCIAS DE BATALHA
+   Cada Pokémon em campo precisa de HP atual e status, então criamos
+   uma cópia "viva" a partir dos dados base do POKEMON_DB.
+   ========================================================================== */
+
+function createBattleInstance(key) {
+  const base = POKEMON_DB[key];
+  return {
+    key,
+    name: base.name,
+    dexId: base.dexId,
+    types: base.types,
+    maxHp: base.hp,
+    hp: base.hp,
+    atk: base.atk,
+    def: base.def,
+    spd: base.spd,
+    moves: base.moves,
+    status: null,     // 'poison' | 'paralysis' | 'sleep' | null
+    atkModifier: 1,   // multiplicador de ataque (usado por efeitos como atkDown)
+    fainted: false
+  };
+}
+
+function setupBattleParties() {
+  state.playerParty = state.playerTeamKeys.map(createBattleInstance);
+  state.rivalParty = state.rivalTeamKeys.map(createBattleInstance);
+  state.playerActiveIndex = 0;
+  state.rivalActiveIndex = 0;
+  state.battleLocked = false;
+}
+
+/* ==========================================================================
+   TELA 3: BATALHA
+   ========================================================================== */
+
+function currentPlayer() { return state.playerParty[state.playerActiveIndex]; }
+function currentRival() { return state.rivalParty[state.rivalActiveIndex]; }
+
+function startBattle() {
+  renderBattleField();
+  setDialogue(`${currentRival().name} do rival apareceu! Vai com tudo!`);
+  renderMovePanel();
+}
+
+function renderBattleField() {
+  const p = currentPlayer();
+  const r = currentRival();
+
+  document.getElementById('player-name').textContent = p.name;
+  document.getElementById('player-sprite').src = spriteUrl(p.dexId, true);
+  document.getElementById('rival-name').textContent = r.name;
+  document.getElementById('rival-sprite').src = spriteUrl(r.dexId, false);
+
+  updateHpBar('player', p);
+  updateHpBar('rival', r);
+}
+
+function updateHpBar(who, mon) {
+  const pct = Math.max(0, mon.hp / mon.maxHp * 100);
+  const fill = document.getElementById(`${who}-hp-fill`);
+  fill.style.width = pct + '%';
+  fill.style.background = pct > 50 ? 'var(--gb-hp-green)' : (pct > 20 ? 'var(--gb-hp-yellow)' : 'var(--gb-hp-red)');
+  document.getElementById(`${who}-hp-text`).textContent = `${Math.max(0, Math.round(mon.hp))} / ${mon.maxHp}`;
+}
+
+function setDialogue(text) {
+  document.getElementById('battle-dialogue').textContent = text;
+}
+
+function renderMovePanel() {
+  const panel = document.getElementById('move-panel');
+  const p = currentPlayer();
+  panel.innerHTML = '';
+
+  p.moves.forEach((move, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'move-btn';
+    btn.style.background = TYPE_COLORS[move.type] || 'var(--gb-blue)';
+    btn.innerHTML = `${move.name}<span class="m-meta">${move.type} · Pow ${move.power || '--'} · Prec ${move.accuracy}%</span>`;
+    btn.addEventListener('click', () => handlePlayerMove(idx));
+    panel.appendChild(btn);
+  });
+}
+
+function lockMovePanel(locked) {
+  state.battleLocked = locked;
+  document.querySelectorAll('.move-btn').forEach(b => b.disabled = locked);
+}
+
+/* ---------------------- FLUXO PRINCIPAL DE UM TURNO ---------------------- */
+
+async function handlePlayerMove(moveIndex) {
+  if (state.battleLocked) return;
+  lockMovePanel(true);
+
+  const player = currentPlayer();
+  const rival = currentRival();
+  const playerMove = player.moves[moveIndex];
+  const rivalMove = chooseRivalMove(rival, player);
+
+  // Define ordem do turno pela velocidade (paralisia reduz velocidade efetiva)
+  const playerSpeed = effectiveSpeed(player);
+  const rivalSpeed = effectiveSpeed(rival);
+  const playerFirst = playerSpeed === rivalSpeed ? Math.random() < 0.5 : playerSpeed > rivalSpeed;
+
+  const order = playerFirst
+    ? [{ attacker: player, defender: rival, move: playerMove, side: 'player' },
+       { attacker: rival, defender: player, move: rivalMove, side: 'rival' }]
+    : [{ attacker: rival, defender: player, move: rivalMove, side: 'rival' },
+       { attacker: player, defender: rival, move: playerMove, side: 'player' }];
+
+  for (const turn of order) {
+    if (turn.attacker.fainted || turn.defender.fainted) continue;
+    await executeMove(turn.attacker, turn.defender, turn.move, turn.side);
+    if (await handleFaintIfNeeded()) return; // batalha pode ter terminado
+  }
+
+  await applyEndOfTurnStatus(player);
+  if (await handleFaintIfNeeded()) return;
+  await applyEndOfTurnStatus(rival);
+  if (await handleFaintIfNeeded()) return;
+
+  renderBattleField();
+  lockMovePanel(false);
+}
+
+function effectiveSpeed(mon) {
+  return mon.status === 'paralysis' ? Math.round(mon.spd * 0.5) : mon.spd;
+}
+
+/* ---------------------- EXECUÇÃO DE UM GOLPE ---------------------- */
+
+async function executeMove(attacker, defender, move, side) {
+  // Verifica se o Pokémon consegue agir (sono / paralisia)
+  if (attacker.status === 'sleep') {
+    setDialogue(`${attacker.name} está dormindo e não conseguiu atacar.`);
+    await wait(900);
+    if (Math.random() < 0.3) {
+      attacker.status = null;
+      setDialogue(`${attacker.name} acordou!`);
+      await wait(800);
+    }
+    return;
+  }
+  if (attacker.status === 'paralysis' && Math.random() < 0.25) {
+    setDialogue(`${attacker.name} está paralisado e não conseguiu se mover!`);
+    await wait(900);
+    return;
+  }
+
+  setDialogue(`${side === 'player' ? 'Você' : 'O rival'} mandou ${attacker.name} usar ${move.name}!`);
+  await wait(700);
+
+  animateAttack(side);
+  await wait(400);
+
+  const hit = Math.random() * 100 < move.accuracy;
+  if (!hit) {
+    setDialogue(`${attacker.name} errou o ataque!`);
+    await wait(900);
+    return;
+  }
+
+  if (move.power > 0) {
+    const { damage, multiplier } = calculateDamage(attacker, defender, move);
+    defender.hp = Math.max(0, defender.hp - damage);
+    animateHit(side === 'player' ? 'rival' : 'player');
+    updateHpBar(side === 'player' ? 'rival' : 'player', defender);
+    await wait(500);
+
+    if (multiplier > 1) { setDialogue('Foi super efetivo!'); await wait(800); }
+    else if (multiplier > 0 && multiplier < 1) { setDialogue('Não foi muito efetivo...'); await wait(800); }
+    else if (multiplier === 0) { setDialogue(`Não afetou ${defender.name}...`); await wait(800); }
+  }
+
+  if (move.effect && defender.hp > 0 && !defender.status && Math.random() * 100 < move.effect.chance) {
+    applyStatusEffect(defender, move.effect.status);
+  }
+}
+
+function animateAttack(side) {
+  const el = document.getElementById(side === 'player' ? 'player-combatant' : 'rival-combatant');
+  el.classList.add(side === 'player' ? 'anim-attack-player' : 'anim-attack-rival');
+  setTimeout(() => el.classList.remove('anim-attack-player', 'anim-attack-rival'), 450);
+}
+
+function animateHit(side) {
+  const el = document.getElementById(side === 'player' ? 'player-combatant' : 'rival-combatant');
+  el.classList.add('anim-hit');
+  setTimeout(() => el.classList.remove('anim-hit'), 450);
+}
+
+/* ---------------------- CÁLCULO DE DANO ---------------------- */
+
+function calculateDamage(attacker, defender, move) {
+  const multiplier = getTypeMultiplier(move.type, defender.types);
+  const atk = attacker.atk * attacker.atkModifier;
+  const randomFactor = 0.85 + Math.random() * 0.15;
+  let raw = move.power * (atk / defender.def) * multiplier * randomFactor * 0.5;
+  const damage = Math.max(multiplier === 0 ? 0 : 1, Math.round(raw));
+  return { damage, multiplier };
+}
+
+function getTypeMultiplier(moveType, defenderTypes) {
+  let mult = 1;
+  defenderTypes.forEach(t => {
+    const chart = TYPE_CHART[moveType];
+    if (chart && chart[t] !== undefined) mult *= chart[t];
+  });
+  return mult;
+}
+
+function applyStatusEffect(mon, status) {
+  mon.status = status;
+  const labels = { poison: 'foi envenenado', paralysis: 'ficou paralisado', sleep: 'adormeceu', atkDown: 'teve o ataque reduzido' };
+  if (status === 'atkDown') {
+    mon.atkModifier = Math.max(0.5, mon.atkModifier - 0.25);
+  }
+  setDialogue(`${mon.name} ${labels[status] || 'foi afetado'}!`);
+}
+
+async function applyEndOfTurnStatus(mon) {
+  if (mon.fainted) return;
+  if (mon.status === 'poison') {
+    await wait(600);
+    const dmg = Math.max(1, Math.round(mon.maxHp / 10));
+    mon.hp = Math.max(0, mon.hp - dmg);
+    setDialogue(`${mon.name} sofreu dano do veneno!`);
+    updateHpBar(mon === currentPlayer() ? 'player' : 'rival', mon);
+    await wait(800);
+  }
+}
+
+/* ---------------------- IA DO RIVAL ---------------------- */
+
+function chooseRivalMove(rivalMon, playerMon) {
+  // 70% das vezes escolhe o golpe mais efetivo contra o Pokémon atual do jogador
+  if (Math.random() < 0.7) {
+    let best = rivalMon.moves[0];
+    let bestMult = -1;
+    rivalMon.moves.forEach(m => {
+      const mult = getTypeMultiplier(m.type, playerMon.types);
+      if (mult > bestMult) { bestMult = mult; best = m; }
+    });
+    return best;
+  }
+  return rivalMon.moves[Math.floor(Math.random() * rivalMon.moves.length)];
+}
+
+/* ---------------------- DESMAIOS E TROCA DE POKÉMON ---------------------- */
+
+async function handleFaintIfNeeded() {
+  const player = currentPlayer();
+  const rival = currentRival();
+
+  if (rival.hp <= 0 && !rival.fainted) {
+    rival.fainted = true;
+    setDialogue(`${rival.name} do rival desmaiou!`);
+    animateFaint('rival');
+    await wait(1000);
+    const nextIdx = state.rivalParty.findIndex((m, i) => i > state.rivalActiveIndex && !m.fainted);
+    if (nextIdx === -1) {
+      await handleVictory();
+      return true;
+    }
+    state.rivalActiveIndex = nextIdx;
+    renderBattleField();
+    setDialogue(`O rival mandou ${currentRival().name}!`);
+    await wait(900);
+  }
+
+  if (player.hp <= 0 && !player.fainted) {
+    player.fainted = true;
+    setDialogue(`${player.name} desmaiou!`);
+    animateFaint('player');
+    await wait(1000);
+    const nextIdx = state.playerParty.findIndex((m, i) => i > state.playerActiveIndex && !m.fainted);
+    if (nextIdx === -1) {
+      await handleDefeat();
+      return true;
+    }
+    state.playerActiveIndex = nextIdx;
+    renderBattleField();
+    renderMovePanel();
+    setDialogue(`Vai, ${currentPlayer().name}!`);
+    await wait(900);
+  }
+
+  lockMovePanel(false);
+  return false;
+}
+
+function animateFaint(side) {
+  const wrap = document.querySelector(`#${side}-combatant .sprite-wrap`);
+  wrap.classList.add('anim-faint');
+  setTimeout(() => wrap.classList.remove('anim-faint'), 650);
+}
+
+/* ==========================================================================
+   TELA 4: VITÓRIA
+   ========================================================================== */
+
+async function handleVictory() {
+  lockMovePanel(true);
+  await wait(600);
+  showScreen('screen-victory');
+  document.getElementById('victory-message').textContent =
+    'Você provou que merece, sim, um feliz aniversário! Que seu novo ano seja tão épico quanto essa batalha. Parabéns! 🎉';
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const container = document.getElementById('screen-victory');
+  const colors = ['#ff5e5e', '#ffd35e', '#5ec8ff', '#8bff5e', '#ff8ef0'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+    piece.style.animationDelay = (Math.random() * 1.5) + 's';
+    container.appendChild(piece);
+    setTimeout(() => piece.remove(), 5000);
+  }
+}
+
+/* ==========================================================================
+   TELA DE DERROTA
+   ========================================================================== */
+
+async function handleDefeat() {
+  lockMovePanel(true);
+  await wait(700);
+  const lastFainted = state.playerParty[state.playerActiveIndex];
+  document.getElementById('defeat-sprite').src = spriteUrl(lastFainted.dexId, true);
+  showScreen('screen-defeat');
+}
+
+document.getElementById('btn-retry').addEventListener('click', resetGame);
+
+function resetGame() {
+  state.playerTeamKeys = [];
+  state.rivalTeamKeys = [];
+  state.playerParty = [];
+  state.rivalParty = [];
+  state.playerActiveIndex = 0;
+  state.rivalActiveIndex = 0;
+  state.battleLocked = false;
+  showScreen('screen-select');
+  renderPokemonGrid();
+}
+
+document.getElementById('btn-replay').addEventListener('click', resetGame);
+
+/* ==========================================================================
+   INICIALIZAÇÃO
+   ========================================================================== */
+
+initIntro();
+</script>
+</body>
+</html>
