@@ -33,19 +33,16 @@
     --radius: 14px;
   }
 
- #app {
+  #app {
     width: 100%;
-    height: 100vh;
+    height: 100%;
+    max-width: 480px;
     margin: 0 auto;
+    position: relative;
     background: linear-gradient(180deg, #2b3a67 0%, #1a1a2e 100%);
     overflow: hidden;
-}
+  }
 
-@media (min-width: 768px) {
-    #app {
-        max-width: 480px;
-    }
-}
   .screen {
     position: absolute;
     inset: 0;
@@ -199,6 +196,15 @@
   }
   .poke-stats span b { color: var(--gb-blue-dark); }
 
+  .poke-moves {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed #c9c4b0;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .poke-moves span { display: inline-block; background: #eceadd; border-radius: 5px; padding: 1px 5px; margin: 1px; }
+
   #btn-confirm-wrap { text-align: center; padding-top: 8px; }
 
   /* ============================= TELA 3: BATALHA ============================= */
@@ -239,6 +245,15 @@
     font-size: 9px;
     margin-bottom: 4px;
   }
+  .name-group { display: flex; align-items: center; gap: 5px; }
+  .status-tag {
+    display: none;
+    font-size: 9px;
+    color: #fff;
+    border-radius: 5px;
+    padding: 2px 5px;
+    font-family: 'Press Start 2P', monospace;
+  }
   .hp-bar-bg {
     background: #444;
     border-radius: 6px;
@@ -253,39 +268,79 @@
     transition: width 0.6s ease, background 0.6s ease;
   }
   .hp-numbers { font-size: 13px; text-align: right; margin-top: 2px; }
-  .status-tag {
-    display: inline-block;
-    font-size: 10px;
-    background: var(--gb-red);
-    color: #fff;
-    border-radius: 6px;
-    padding: 1px 5px;
-    margin-left: 4px;
-  }
 
-  .sprite-wrap { position: relative; height: 90px; width: 90px; margin-top: 4px; }
-  .sprite-wrap img {
+  .sprite-wrap { position: relative; height: 112px; width: 100px; margin-top: 4px; }
+  .mon-sprite {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 90px; height: 90px;
     image-rendering: pixelated;
     filter: drop-shadow(4px 6px 4px rgba(0,0,0,0.35));
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .trainer-sprite {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 100px;
+    image-rendering: pixelated;
+    filter: drop-shadow(4px 6px 4px rgba(0,0,0,0.35));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .dmg-popup {
+    position: absolute;
+    top: 4px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    color: #ff4d4d;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
+    animation: dmgFloat 0.9s ease forwards;
+    pointer-events: none;
+    z-index: 6;
+  }
+  .dmg-popup.dmg-crit { color: #ffd35e; font-size: 18px; }
+  @keyframes dmgFloat {
+    0% { opacity: 0; transform: translate(-50%, 6px); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -34px); }
   }
 
   @keyframes attackLungeRight { 0%{transform:translateX(0)} 40%{transform:translateX(-18px)} 100%{transform:translateX(0)} }
   @keyframes attackLungeLeft { 0%{transform:translateX(0)} 40%{transform:translateX(18px)} 100%{transform:translateX(0)} }
   @keyframes hitShake {
-    0%,100% { transform: translateX(0); filter: brightness(1); }
-    20% { transform: translateX(-6px); filter: brightness(2) saturate(3); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
+    0%,100% { transform: translateX(-50%); filter: brightness(1); }
+    20% { transform: translateX(calc(-50% - 6px)); filter: brightness(2) saturate(3); }
+    40% { transform: translateX(calc(-50% + 6px)); }
+    60% { transform: translateX(calc(-50% - 4px)); }
+    80% { transform: translateX(calc(-50% + 4px)); }
+  }
+  @keyframes hitShakeCrit {
+    0%,100% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+    15% { transform: translateX(calc(-50% - 10px)) scale(1.05); filter: brightness(2.4) saturate(4); }
+    35% { transform: translateX(calc(-50% + 10px)) scale(1.05); }
+    55% { transform: translateX(calc(-50% - 8px)) scale(1); }
+    75% { transform: translateX(calc(-50% + 6px)); }
   }
   @keyframes faintDrop {
-    to { transform: translateY(60px); opacity: 0; }
+    to { transform: translateX(-50%) translateY(60px); opacity: 0; }
   }
-  .anim-attack-player img { animation: attackLungeRight 0.4s ease; }
-  .anim-attack-rival img { animation: attackLungeLeft 0.4s ease; }
-  .anim-hit img { animation: hitShake 0.4s ease; }
-  .anim-faint img { animation: faintDrop 0.6s ease forwards; }
+  @keyframes trainerIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(18px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  @keyframes monPop {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.2); }
+    70% { opacity: 1; transform: translateX(-50%) scale(1.15); }
+    100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  }
+  .anim-attack-player .mon-sprite { animation: attackLungeRight 0.4s ease; }
+  .anim-attack-rival .mon-sprite { animation: attackLungeLeft 0.4s ease; }
+  .anim-hit .mon-sprite { animation: hitShake 0.4s ease; }
+  .anim-hit-crit .mon-sprite { animation: hitShakeCrit 0.5s ease; }
+  .anim-faint .mon-sprite { animation: faintDrop 0.6s ease forwards; }
+  .trainer-showing { animation: trainerIn 0.4s ease forwards; }
+  .mon-showing { animation: monPop 0.5s ease forwards; }
 
   #battle-dialogue {
     background: var(--gb-panel);
@@ -298,6 +353,19 @@
     line-height: 1.35;
     box-shadow: 0 5px 0 rgba(0,0,0,0.25);
   }
+
+  #action-tabs { display: flex; gap: 6px; }
+  .tab-btn {
+    flex: 1;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 8px 4px;
+    border-radius: 8px 8px 0 0;
+    background: #2b3a67;
+    color: #cfd8ec;
+    border-bottom: 3px solid transparent;
+  }
+  .tab-btn.active { background: var(--gb-panel); color: var(--gb-text); border-bottom: 3px solid var(--gb-yellow); }
 
   #move-panel {
     display: grid;
@@ -316,7 +384,29 @@
   }
   .move-btn:active { transform: translateY(2px); border-bottom-width: 1px; }
   .move-btn .m-meta { font-family: 'VT323', monospace; font-size: 13px; opacity: 0.85; display:block; margin-top:3px; }
-  .move-btn.hidden-panel { visibility: hidden; }
+  .move-btn, .switch-btn, .tab-btn { touch-action: manipulation; }
+  .move-btn:disabled, .switch-btn:disabled { pointer-events: none; }
+
+  #switch-panel {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .switch-btn {
+    background: var(--gb-panel);
+    color: var(--gb-text);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-bottom: 3px solid var(--gb-panel-border);
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+  }
+  .switch-btn img { width: 44px; height: 44px; image-rendering: pixelated; }
+  .switch-btn .switch-hp { font-size: 12px; opacity: 0.75; }
+  .switch-empty { grid-column: 1 / -1; text-align: center; color: #fff; font-size: 15px; }
 
   /* ============================= TELA 4: VITÓRIA ============================= */
   #screen-victory {
@@ -420,7 +510,7 @@
   <section id="screen-select" class="screen">
     <div class="select-header">
       <h2 class="pixel-title">ESCOLHA SUA EQUIPE</h2>
-      <div class="select-counter" id="select-counter">0 / 3 escolhidos</div>
+      <div class="select-counter" id="select-counter">0 / 6 escolhidos</div>
     </div>
     <div class="pokemon-grid" id="pokemon-grid"></div>
     <div id="btn-confirm-wrap">
@@ -433,17 +523,29 @@
     <div class="battle-field">
       <div class="combatant" id="rival-combatant">
         <div class="status-panel">
-          <div class="name-row"><span id="rival-name">---</span><span id="rival-lv">Nv. 50</span></div>
+          <div class="name-row">
+            <span class="name-group"><span id="rival-name">---</span><span class="status-tag" id="rival-status-tag"></span></span>
+            <span id="rival-lv">Nv. 50</span>
+          </div>
           <div class="hp-bar-bg"><div class="hp-bar-fill" id="rival-hp-fill"></div></div>
           <div class="hp-numbers" id="rival-hp-text"></div>
         </div>
-        <div class="sprite-wrap"><img id="rival-sprite" src="" alt="Pokémon rival"></div>
+        <div class="sprite-wrap">
+          <img class="trainer-sprite" id="rival-trainer" src="" alt="Treinador rival">
+          <img class="mon-sprite" id="rival-sprite" src="" alt="Pokémon rival">
+        </div>
       </div>
 
       <div class="combatant" id="player-combatant">
-        <div class="sprite-wrap"><img id="player-sprite" src="" alt="Seu Pokémon"></div>
+        <div class="sprite-wrap">
+          <img class="trainer-sprite" id="player-trainer" src="" alt="Treinador">
+          <img class="mon-sprite" id="player-sprite" src="" alt="Seu Pokémon">
+        </div>
         <div class="status-panel">
-          <div class="name-row"><span id="player-name">---</span><span id="player-lv">Nv. 50</span></div>
+          <div class="name-row">
+            <span class="name-group"><span id="player-name">---</span><span class="status-tag" id="player-status-tag"></span></span>
+            <span id="player-lv">Nv. 50</span>
+          </div>
           <div class="hp-bar-bg"><div class="hp-bar-fill" id="player-hp-fill"></div></div>
           <div class="hp-numbers" id="player-hp-text"></div>
         </div>
@@ -452,7 +554,12 @@
 
     <div id="battle-dialogue">...</div>
 
+    <div id="action-tabs">
+      <button class="tab-btn active" id="tab-fight">Lutar</button>
+      <button class="tab-btn" id="tab-switch">Trocar</button>
+    </div>
     <div id="move-panel"></div>
+    <div id="switch-panel"></div>
   </section>
 
   <!-- ======================= TELA 4: DERROTA ======================= -->
@@ -486,7 +593,8 @@ const TYPE_COLORS = {
   'Fogo': '#e0654a', 'Água': '#4a90d9', 'Grama': '#5cb85c', 'Elétrico': '#e0c23e',
   'Psíquico': '#e070a0', 'Lutador': '#c2543a', 'Sombrio': '#5a5266', 'Fantasma': '#6e5a9e',
   'Dragão': '#6a5ce0', 'Voador': '#8fa8e0', 'Inseto': '#9ec13a', 'Aço': '#8f9aa8',
-  'Fada': '#eb98c4', 'Pedra': '#b8a45a', 'Veneno': '#a35ac1', 'Chão': '#c9a35a', 'Normal': '#9a9a80'
+  'Fada': '#eb98c4', 'Pedra': '#b8a45a', 'Veneno': '#a35ac1', 'Chão': '#c9a35a', 'Normal': '#9a9a80',
+  'Gelo': '#7ecbd8'
 };
 
 // Tabela de efetividade de tipos (apenas os tipos usados no jogo)
@@ -507,7 +615,8 @@ const TYPE_CHART = {
   'Pedra':     { 'Fogo':2, 'Voador':2, 'Inseto':2, 'Água':0.5, 'Grama':0.5, 'Lutador':0.5, 'Chão':0.5, 'Aço':0.5 },
   'Veneno':    { 'Grama':2, 'Fada':2, 'Chão':0.5, 'Psíquico':0.5, 'Pedra':0.5, 'Fantasma':0.5 },
   'Chão':      { 'Fogo':2, 'Elétrico':2, 'Veneno':2, 'Pedra':2, 'Aço':2, 'Voador':0, 'Grama':0.5, 'Inseto':0.5 },
-  'Normal':    { 'Pedra':0.5, 'Aço':0.5, 'Fantasma':0 }
+  'Normal':    { 'Pedra':0.5, 'Aço':0.5, 'Fantasma':0 },
+  'Gelo':      { 'Grama':2, 'Chão':2, 'Voador':2, 'Dragão':2, 'Água':0.5, 'Gelo':0.5, 'Aço':0.5, 'Fogo':0.5 }
 };
 
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/heartgold-soulsilver/';
@@ -522,6 +631,29 @@ function spriteUrl(dexId, back) {
   return base + (back ? 'back/' : '') + dexId + '.png';
 }
 
+// ---------- Nomes dos treinadores ----------
+// Basta trocar os valores abaixo para renomear os personagens em todo o jogo.
+const PLAYER_TRAINER_NAME = 'Lucas';
+const RIVAL_TRAINER_NAME = 'Audir';
+
+// ---------- Sprites dos treinadores ----------
+// Coloque os arquivos PNG na MESMA PASTA deste HTML, com exatamente estes nomes.
+// Se o arquivo não existir, o jogo usa uma silhueta simples no lugar (nada quebra).
+const TRAINER_SPRITE_PLAYER = 'treinador-lucas.png';
+const TRAINER_SPRITE_RIVAL = 'rival.png';
+
+function trainerPlaceholder(color) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" shape-rendering="crispEdges">
+    <rect x="24" y="6" width="16" height="16" fill="${color}"/>
+    <rect x="18" y="24" width="28" height="26" fill="${color}"/>
+    <rect x="14" y="50" width="14" height="14" fill="${color}"/>
+    <rect x="36" y="50" width="14" height="14" fill="${color}"/>
+  </svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+const TRAINER_PLACEHOLDER_PLAYER = trainerPlaceholder('#3b6ea5');
+const TRAINER_PLACEHOLDER_RIVAL = trainerPlaceholder('#d94141');
+
 // Banco de dados de Pokémon disponíveis no jogo
 const POKEMON_DB = {
   charizard: { name: 'Charizard', dexId: 6, types: ['Fogo', 'Voador'], hp: 168, atk: 84, def: 78, spd: 100,
@@ -529,103 +661,166 @@ const POKEMON_DB = {
       { name: 'Lança-Chamas', type: 'Fogo', power: 90, accuracy: 100 },
       { name: 'Voo', type: 'Voador', power: 85, accuracy: 95 },
       { name: 'Garra de Dragão', type: 'Dragão', power: 80, accuracy: 100 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Asa de Aço', type: 'Aço', power: 70, accuracy: 90 }
     ]},
   greninja: { name: 'Greninja', dexId: 658, types: ['Água', 'Sombrio'], hp: 142, atk: 103, def: 67, spd: 122,
     moves: [
       { name: 'Hidrobomba', type: 'Água', power: 100, accuracy: 80 },
       { name: 'Shuriken das Sombras', type: 'Sombrio', power: 80, accuracy: 100 },
       { name: 'Surf', type: 'Água', power: 75, accuracy: 100 },
-      { name: 'Corte', type: 'Normal', power: 50, accuracy: 95 }
+      { name: 'Raio Gelado', type: 'Gelo', power: 90, accuracy: 100 }
     ]},
   lucario: { name: 'Lucario', dexId: 448, types: ['Lutador', 'Aço'], hp: 140, atk: 110, def: 70, spd: 90,
     moves: [
       { name: 'Esfera Aural', type: 'Lutador', power: 90, accuracy: 100 },
       { name: 'Punho de Ferro', type: 'Aço', power: 75, accuracy: 100 },
       { name: 'Golpe Sombrio', type: 'Sombrio', power: 65, accuracy: 100 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Extremo Velocidade', type: 'Normal', power: 80, accuracy: 100, priority: 1 }
     ]},
   gardevoir: { name: 'Gardevoir', dexId: 282, types: ['Psíquico', 'Fada'], hp: 136, atk: 65, def: 68, spd: 80,
     moves: [
       { name: 'Psíquico', type: 'Psíquico', power: 90, accuracy: 100 },
       { name: 'Vendaval Feérico', type: 'Fada', power: 90, accuracy: 95 },
       { name: 'Hipnose', type: 'Psíquico', power: 0, accuracy: 60, effect: { status: 'sleep', chance: 100 } },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Bola Sombria', type: 'Fantasma', power: 80, accuracy: 100 }
     ]},
   luxray: { name: 'Luxray', dexId: 405, types: ['Elétrico'], hp: 150, atk: 120, def: 79, spd: 70,
     moves: [
       { name: 'Trovão', type: 'Elétrico', power: 90, accuracy: 90, effect: { status: 'paralysis', chance: 20 } },
       { name: 'Presas de Choque', type: 'Elétrico', power: 65, accuracy: 95, effect: { status: 'paralysis', chance: 10 } },
       { name: 'Mordida', type: 'Sombrio', power: 60, accuracy: 100 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Presas de Gelo', type: 'Gelo', power: 65, accuracy: 95 }
     ]},
   leafeon: { name: 'Leafeon', dexId: 470, types: ['Grama'], hp: 130, atk: 110, def: 130, spd: 95,
     moves: [
       { name: 'Folha Navalha', type: 'Grama', power: 75, accuracy: 100 },
       { name: 'Investida Selvagem', type: 'Normal', power: 85, accuracy: 100 },
       { name: 'Chicote de Vinha', type: 'Grama', power: 65, accuracy: 100 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Presas de Gelo', type: 'Gelo', power: 65, accuracy: 95 }
     ]},
   dragonite: { name: 'Dragonite', dexId: 149, types: ['Dragão', 'Voador'], hp: 182, atk: 134, def: 95, spd: 80,
     moves: [
       { name: 'Fúria Dracônica', type: 'Dragão', power: 85, accuracy: 100 },
       { name: 'Investida Aérea', type: 'Voador', power: 80, accuracy: 95 },
       { name: 'Investida Poderosa', type: 'Normal', power: 95, accuracy: 90 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Extremo Velocidade', type: 'Normal', power: 80, accuracy: 100, priority: 1 }
     ]},
   gengar: { name: 'Gengar', dexId: 94, types: ['Fantasma', 'Veneno'], hp: 120, atk: 65, def: 60, spd: 130,
     moves: [
       { name: 'Bola Sombria', type: 'Fantasma', power: 80, accuracy: 100 },
       { name: 'Lança-Lodo', type: 'Veneno', power: 65, accuracy: 100, effect: { status: 'poison', chance: 30 } },
       { name: 'Grito Fantasma', type: 'Fantasma', power: 0, accuracy: 75, effect: { status: 'sleep', chance: 100 } },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Investida das Sombras', type: 'Fantasma', power: 40, accuracy: 100, priority: 1 }
     ]},
   garchomp: { name: 'Garchomp', dexId: 445, types: ['Dragão', 'Chão'], hp: 170, atk: 130, def: 95, spd: 102,
     moves: [
       { name: 'Terremoto', type: 'Chão', power: 100, accuracy: 100 },
       { name: 'Garra de Dragão', type: 'Dragão', power: 80, accuracy: 100 },
       { name: 'Fúria de Areia', type: 'Chão', power: 70, accuracy: 100 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Presas de Fogo', type: 'Fogo', power: 65, accuracy: 95 }
     ]},
   metagross: { name: 'Metagross', dexId: 376, types: ['Aço', 'Psíquico'], hp: 180, atk: 135, def: 130, spd: 70,
     moves: [
       { name: 'Punho Meteoro', type: 'Aço', power: 90, accuracy: 90 },
       { name: 'Psíquico', type: 'Psíquico', power: 90, accuracy: 100 },
       { name: 'Cabeçada de Ferro', type: 'Aço', power: 80, accuracy: 100 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Soco Bala', type: 'Aço', power: 60, accuracy: 100, priority: 1 }
     ]},
   tyranitar: { name: 'Tyranitar', dexId: 248, types: ['Pedra', 'Sombrio'], hp: 200, atk: 134, def: 110, spd: 61,
     moves: [
       { name: 'Avalanche de Pedras', type: 'Pedra', power: 90, accuracy: 90 },
       { name: 'Investida Sombria', type: 'Sombrio', power: 80, accuracy: 100 },
       { name: 'Triturar', type: 'Sombrio', power: 70, accuracy: 100 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Golpe Surpresa', type: 'Sombrio', power: 70, accuracy: 100, priority: 1 }
     ]},
   arcanine: { name: 'Arcanine', dexId: 59, types: ['Fogo'], hp: 170, atk: 110, def: 80, spd: 95,
     moves: [
       { name: 'Lança-Chamas', type: 'Fogo', power: 90, accuracy: 100 },
-      { name: 'Presas de Fogo', type: 'Fogo', power: 65, accuracy: 95, effect: { status: 'paralysis', chance: 10 } },
-      { name: 'Ataque Rápido', type: 'Normal', power: 40, accuracy: 100 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Presas de Gelo', type: 'Gelo', power: 65, accuracy: 95 },
+      { name: 'Ataque Rápido', type: 'Normal', power: 40, accuracy: 100, priority: 1 },
+      { name: 'Extremo Velocidade', type: 'Normal', power: 80, accuracy: 100, priority: 1 }
     ]},
   scizor: { name: 'Scizor', dexId: 212, types: ['Inseto', 'Aço'], hp: 170, atk: 130, def: 100, spd: 65,
     moves: [
       { name: 'Golpe de Metal', type: 'Aço', power: 80, accuracy: 100 },
       { name: 'Corte X', type: 'Inseto', power: 85, accuracy: 100 },
       { name: 'Investida Ágil', type: 'Aço', power: 60, accuracy: 100 },
-      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+      { name: 'Soco Bala', type: 'Aço', power: 60, accuracy: 100, priority: 1 }
     ]},
   sylveon: { name: 'Sylveon', dexId: 700, types: ['Fada'], hp: 160, atk: 65, def: 65, spd: 60,
     moves: [
       { name: 'Vendaval Feérico', type: 'Fada', power: 90, accuracy: 95 },
       { name: 'Fúria Fofa', type: 'Fada', power: 70, accuracy: 100 },
       { name: 'Voz Encantada', type: 'Fada', power: 60, accuracy: 100, effect: { status: 'atkDown', chance: 30 } },
+      { name: 'Bola Sombria', type: 'Fantasma', power: 80, accuracy: 100 }
+    ]},
+  pikachu: { name: 'Pikachu', dexId: 25, types: ['Elétrico'], hp: 110, atk: 95, def: 55, spd: 140,
+    moves: [
+      { name: 'Raio', type: 'Elétrico', power: 90, accuracy: 100, effect: { status: 'paralysis', chance: 10 } },
+      { name: 'Soco Trovão', type: 'Elétrico', power: 75, accuracy: 100, effect: { status: 'paralysis', chance: 10 } },
+      { name: 'Cauda de Ferro', type: 'Aço', power: 75, accuracy: 85 },
+      { name: 'Ataque Rápido', type: 'Normal', power: 40, accuracy: 100, priority: 1 }
+    ]},
+  alakazam: { name: 'Alakazam', dexId: 65, types: ['Psíquico'], hp: 100, atk: 60, def: 50, spd: 150,
+    moves: [
+      { name: 'Psíquico', type: 'Psíquico', power: 90, accuracy: 100 },
+      { name: 'Bola Sombria', type: 'Fantasma', power: 80, accuracy: 100 },
+      { name: 'Soco de Fogo', type: 'Fogo', power: 75, accuracy: 100 },
+      { name: 'Soco Gelado', type: 'Gelo', power: 75, accuracy: 100 }
+    ]},
+  machamp: { name: 'Machamp', dexId: 68, types: ['Lutador'], hp: 160, atk: 145, def: 90, spd: 55,
+    moves: [
+      { name: 'Combate Corpo a Corpo', type: 'Lutador', power: 100, accuracy: 100 },
+      { name: 'Investida de Pedras', type: 'Pedra', power: 75, accuracy: 90 },
+      { name: 'Soco Gelado', type: 'Gelo', power: 75, accuracy: 100 },
+      { name: 'Investida Bruta', type: 'Normal', power: 85, accuracy: 100 }
+    ]},
+  gyarados: { name: 'Gyarados', dexId: 130, types: ['Água', 'Voador'], hp: 165, atk: 125, def: 79, spd: 81,
+    moves: [
+      { name: 'Hidrobomba', type: 'Água', power: 100, accuracy: 80 },
+      { name: 'Presas de Gelo', type: 'Gelo', power: 65, accuracy: 95 },
+      { name: 'Presas Elétricas', type: 'Elétrico', power: 65, accuracy: 95, effect: { status: 'paralysis', chance: 10 } },
+      { name: 'Voo', type: 'Voador', power: 85, accuracy: 95 }
+    ]},
+  snorlax: { name: 'Snorlax', dexId: 143, types: ['Normal'], hp: 250, atk: 110, def: 65, spd: 30,
+    moves: [
+      { name: 'Investida Corpo', type: 'Normal', power: 85, accuracy: 100, effect: { status: 'paralysis', chance: 20 } },
+      { name: 'Terremoto', type: 'Chão', power: 100, accuracy: 100 },
+      { name: 'Soco Gelado', type: 'Gelo', power: 75, accuracy: 100 },
       { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  umbreon: { name: 'Umbreon', dexId: 197, types: ['Sombrio'], hp: 200, atk: 80, def: 110, spd: 65,
+    moves: [
+      { name: 'Bola Sombria', type: 'Fantasma', power: 80, accuracy: 100 },
+      { name: 'Triturar', type: 'Sombrio', power: 80, accuracy: 100 },
+      { name: 'Presas Elétricas', type: 'Elétrico', power: 65, accuracy: 95, effect: { status: 'paralysis', chance: 10 } },
+      { name: 'Golpe Surpresa', type: 'Sombrio', power: 70, accuracy: 100, priority: 1 }
+    ]},
+  blaziken: { name: 'Blaziken', dexId: 257, types: ['Fogo', 'Lutador'], hp: 160, atk: 145, def: 75, spd: 110,
+    moves: [
+      { name: 'Lança-Chamas', type: 'Fogo', power: 90, accuracy: 100 },
+      { name: 'Combate Corpo a Corpo', type: 'Lutador', power: 100, accuracy: 100 },
+      { name: 'Investida Aérea', type: 'Voador', power: 80, accuracy: 95 },
+      { name: 'Investida', type: 'Normal', power: 45, accuracy: 100 }
+    ]},
+  salamence: { name: 'Salamence', dexId: 373, types: ['Dragão', 'Voador'], hp: 190, atk: 145, def: 90, spd: 100,
+    moves: [
+      { name: 'Fúria Dracônica', type: 'Dragão', power: 85, accuracy: 100 },
+      { name: 'Investida Aérea', type: 'Voador', power: 80, accuracy: 95 },
+      { name: 'Terremoto', type: 'Chão', power: 100, accuracy: 100 },
+      { name: 'Presas de Fogo', type: 'Fogo', power: 65, accuracy: 95 }
     ]}
 };
 
-// Equipe padrão do rival (6 possíveis, 3 serão sorteados)
-const RIVAL_DEFAULT_TEAM = ['garchomp', 'metagross', 'tyranitar', 'dragonite', 'gengar', 'arcanine'];
+// Tamanho da equipe de batalha (jogador e rival)
+const TEAM_SIZE = 6;
+
+// Pool do rival (14 possíveis, 6 serão sorteados). Tem folga suficiente pra
+// nunca faltar opção mesmo se o jogador escolher vários desses também.
+const RIVAL_DEFAULT_TEAM = [
+  'garchomp', 'metagross', 'tyranitar', 'dragonite', 'gengar', 'arcanine',
+  'pikachu', 'alakazam', 'machamp', 'gyarados', 'snorlax', 'umbreon', 'blaziken', 'salamence'
+];
 
 /* ==========================================================================
    ESTADO DO JOGO
@@ -661,6 +856,18 @@ function shuffle(array) {
 
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Espera a imagem estar de fato pronta pra desenhar antes de revelar.
+// Evita o bug de mostrar o Pokémon por cima enquanto o treinador ainda está carregando.
+function waitForImageReady(imgEl) {
+  return new Promise(resolve => {
+    if (imgEl.complete && imgEl.naturalWidth > 0) { resolve(); return; }
+    const done = () => { imgEl.removeEventListener('load', done); imgEl.removeEventListener('error', done); resolve(); };
+    imgEl.addEventListener('load', done);
+    imgEl.addEventListener('error', done);
+    setTimeout(done, 1200); // salvaguarda: nunca trava a animação por mais de 1.2s
+  });
 }
 
 function typeBadgesHtml(types) {
@@ -708,6 +915,7 @@ function renderPokemonGrid() {
         <span>Def <b>${p.def}</b></span>
         <span>Vel <b>${p.spd}</b></span>
       </div>
+      <div class="poke-moves">${p.moves.map(m => `<span>${m.name}${m.priority ? ' ⚡' : ''}</span>`).join('')}</div>
     `;
     card.addEventListener('click', () => togglePokemonSelect(key, card));
     grid.appendChild(card);
@@ -721,7 +929,7 @@ function togglePokemonSelect(key, cardEl) {
   if (idx >= 0) {
     state.playerTeamKeys.splice(idx, 1);
   } else {
-    if (state.playerTeamKeys.length >= 3) return;
+    if (state.playerTeamKeys.length >= TEAM_SIZE) return;
     state.playerTeamKeys.push(key);
   }
   updateSelectionUI();
@@ -732,15 +940,15 @@ function updateSelectionUI() {
     const key = card.dataset.key;
     const selected = state.playerTeamKeys.includes(key);
     card.classList.toggle('selected', selected);
-    card.classList.toggle('disabled', !selected && state.playerTeamKeys.length >= 3);
+    card.classList.toggle('disabled', !selected && state.playerTeamKeys.length >= TEAM_SIZE);
   });
 
-  document.getElementById('select-counter').textContent = `${state.playerTeamKeys.length} / 3 escolhidos`;
-  document.getElementById('btn-confirm').disabled = state.playerTeamKeys.length !== 3;
+  document.getElementById('select-counter').textContent = `${state.playerTeamKeys.length} / ${TEAM_SIZE} escolhidos`;
+  document.getElementById('btn-confirm').disabled = state.playerTeamKeys.length !== TEAM_SIZE;
 }
 
 document.getElementById('btn-confirm').addEventListener('click', () => {
-  if (state.playerTeamKeys.length !== 3) return;
+  if (state.playerTeamKeys.length !== TEAM_SIZE) return;
   buildRivalTeam();
   setupBattleParties();
   showScreen('screen-battle');
@@ -754,7 +962,7 @@ document.getElementById('btn-confirm').addEventListener('click', () => {
 function buildRivalTeam() {
   // Remove da lista padrão qualquer Pokémon já escolhido pelo jogador
   const available = RIVAL_DEFAULT_TEAM.filter(k => !state.playerTeamKeys.includes(k));
-  state.rivalTeamKeys = shuffle(available).slice(0, 3);
+  state.rivalTeamKeys = shuffle(available).slice(0, TEAM_SIZE);
 }
 
 /* ==========================================================================
@@ -797,10 +1005,53 @@ function setupBattleParties() {
 function currentPlayer() { return state.playerParty[state.playerActiveIndex]; }
 function currentRival() { return state.rivalParty[state.rivalActiveIndex]; }
 
-function startBattle() {
+async function startBattle() {
+  showPanel('fight');
+  document.getElementById('move-panel').innerHTML = '';
+
+  const rivalNames = state.rivalParty.map(m => m.name).join(', ');
+  setDialogue(`${RIVAL_TRAINER_NAME} te desafiou pra batalha! Equipe dele: ${rivalNames}.`);
+  await wait(2000);
+
+  await sendOutPokemon('rival', currentRival());
+  setDialogue(`${RIVAL_TRAINER_NAME} enviou ${currentRival().name}!`);
+  await wait(900);
+
+  await sendOutPokemon('player', currentPlayer());
+  setDialogue(`Vai, ${currentPlayer().name}!`);
+  await wait(700);
+
   renderBattleField();
-  setDialogue(`${currentRival().name} do rival apareceu! Vai com tudo!`);
   renderMovePanel();
+}
+
+// Anima o treinador entrando, "invocando" o Pokémon, e saindo antes da luta.
+async function sendOutPokemon(side, mon) {
+  const trainerImg = document.getElementById(`${side}-trainer`);
+  const monImg = document.getElementById(`${side}-sprite`);
+
+  monImg.style.opacity = 0;
+  monImg.classList.remove('mon-showing');
+  trainerImg.onerror = () => {
+    trainerImg.onerror = null;
+    trainerImg.src = side === 'player' ? TRAINER_PLACEHOLDER_PLAYER : TRAINER_PLACEHOLDER_RIVAL;
+  };
+  trainerImg.src = side === 'player' ? TRAINER_SPRITE_PLAYER : TRAINER_SPRITE_RIVAL;
+  await waitForImageReady(trainerImg);
+  trainerImg.classList.remove('trainer-showing');
+  void trainerImg.offsetWidth; // reinicia a animação CSS
+  trainerImg.classList.add('trainer-showing');
+  trainerImg.style.opacity = 1;
+  await wait(550);
+
+  trainerImg.style.opacity = 0;
+  monImg.src = spriteUrl(mon.dexId, side === 'player');
+  await waitForImageReady(monImg);
+  void monImg.offsetWidth;
+  monImg.classList.add('mon-showing');
+  monImg.style.opacity = 1;
+  document.querySelector(`#${side}-combatant .sprite-wrap`).classList.remove('anim-faint');
+  await wait(550);
 }
 
 function renderBattleField() {
@@ -808,12 +1059,25 @@ function renderBattleField() {
   const r = currentRival();
 
   document.getElementById('player-name').textContent = p.name;
-  document.getElementById('player-sprite').src = spriteUrl(p.dexId, true);
   document.getElementById('rival-name').textContent = r.name;
-  document.getElementById('rival-sprite').src = spriteUrl(r.dexId, false);
 
   updateHpBar('player', p);
   updateHpBar('rival', r);
+  updateStatusTag('player', p);
+  updateStatusTag('rival', r);
+}
+
+function updateStatusTag(who, mon) {
+  const labels = { poison: 'PSN', paralysis: 'PAR', sleep: 'SLP', atkDown: 'ATK-' };
+  const colors = { poison: '#a35ac1', paralysis: '#f0c020', sleep: '#8f9aa8', atkDown: '#c2543a' };
+  const tag = document.getElementById(`${who}-status-tag`);
+  if (mon.status && labels[mon.status]) {
+    tag.textContent = labels[mon.status];
+    tag.style.background = colors[mon.status];
+    tag.style.display = 'inline-block';
+  } else {
+    tag.style.display = 'none';
+  }
 }
 
 function updateHpBar(who, mon) {
@@ -837,15 +1101,84 @@ function renderMovePanel() {
     const btn = document.createElement('button');
     btn.className = 'move-btn';
     btn.style.background = TYPE_COLORS[move.type] || 'var(--gb-blue)';
-    btn.innerHTML = `${move.name}<span class="m-meta">${move.type} · Pow ${move.power || '--'} · Prec ${move.accuracy}%</span>`;
+    const priorityBadge = move.priority ? ' ⚡' : '';
+    btn.innerHTML = `${move.name}${priorityBadge}<span class="m-meta">${move.type} · Pow ${move.power || '--'} · Prec ${move.accuracy}%</span>`;
     btn.addEventListener('click', () => handlePlayerMove(idx));
     panel.appendChild(btn);
   });
+
+  showPanel('fight');
 }
+
+function renderSwitchPanel() {
+  const panel = document.getElementById('switch-panel');
+  panel.innerHTML = '';
+
+  state.playerParty.forEach((mon, idx) => {
+    if (idx === state.playerActiveIndex || mon.fainted) return;
+    const btn = document.createElement('button');
+    btn.className = 'switch-btn';
+    btn.innerHTML = `
+      <img src="${spriteUrl(mon.dexId, true)}" alt="${mon.name}">
+      <span>${mon.name}</span>
+      <span class="switch-hp">${Math.max(0, Math.round(mon.hp))} / ${mon.maxHp} HP</span>
+    `;
+    btn.addEventListener('click', () => handlePlayerSwitch(idx));
+    panel.appendChild(btn);
+  });
+
+  if (!panel.children.length) {
+    panel.innerHTML = '<p class="switch-empty">Não há outro Pokémon disponível.</p>';
+  }
+}
+
+function showPanel(which) {
+  document.getElementById('move-panel').style.display = which === 'fight' ? 'grid' : 'none';
+  document.getElementById('switch-panel').style.display = which === 'switch' ? 'grid' : 'none';
+  document.getElementById('tab-fight').classList.toggle('active', which === 'fight');
+  document.getElementById('tab-switch').classList.toggle('active', which === 'switch');
+  if (which === 'switch') renderSwitchPanel();
+}
+
+document.getElementById('tab-fight').addEventListener('click', () => { if (!state.battleLocked) showPanel('fight'); });
+document.getElementById('tab-switch').addEventListener('click', () => { if (!state.battleLocked) showPanel('switch'); });
 
 function lockMovePanel(locked) {
   state.battleLocked = locked;
-  document.querySelectorAll('.move-btn').forEach(b => b.disabled = locked);
+  document.querySelectorAll('.move-btn, .switch-btn, .tab-btn').forEach(b => b.disabled = locked);
+}
+
+/* ---------------------- TROCA VOLUNTÁRIA DE POKÉMON ---------------------- */
+
+async function handlePlayerSwitch(newIndex) {
+  if (state.battleLocked) return;
+  lockMovePanel(true);
+
+  const rival = currentRival();
+  const oldMon = currentPlayer();
+
+  setDialogue(`Volte, ${oldMon.name}!`);
+  await wait(600);
+
+  state.playerActiveIndex = newIndex;
+  await sendOutPokemon('player', currentPlayer());
+  renderBattleField();
+  renderMovePanel();
+  setDialogue(`Vai, ${currentPlayer().name}!`);
+  await wait(700);
+
+  // Trocar consome o turno: o rival ataca o novo Pokémon normalmente.
+  const rivalMove = chooseRivalMove(rival, currentPlayer());
+  await executeMove(rival, currentPlayer(), rivalMove, 'rival');
+  if (await handleFaintIfNeeded()) return;
+
+  await applyEndOfTurnStatus(currentPlayer());
+  if (await handleFaintIfNeeded()) return;
+  await applyEndOfTurnStatus(rival);
+  if (await handleFaintIfNeeded()) return;
+
+  renderBattleField();
+  lockMovePanel(false);
 }
 
 /* ---------------------- FLUXO PRINCIPAL DE UM TURNO ---------------------- */
@@ -860,9 +1193,7 @@ async function handlePlayerMove(moveIndex) {
   const rivalMove = chooseRivalMove(rival, player);
 
   // Define ordem do turno pela velocidade (paralisia reduz velocidade efetiva)
-  const playerSpeed = effectiveSpeed(player);
-  const rivalSpeed = effectiveSpeed(rival);
-  const playerFirst = playerSpeed === rivalSpeed ? Math.random() < 0.5 : playerSpeed > rivalSpeed;
+  const playerFirst = determineTurnOrder(player, rival, playerMove, rivalMove);
 
   const order = playerFirst
     ? [{ attacker: player, defender: rival, move: playerMove, side: 'player' },
@@ -885,6 +1216,18 @@ async function handlePlayerMove(moveIndex) {
   lockMovePanel(false);
 }
 
+// Prioridade de golpe vence a comparação de velocidade (ex: Ataque Rápido sempre sai antes,
+// a não ser que os dois usem golpes de mesma prioridade).
+function determineTurnOrder(player, rival, playerMove, rivalMove) {
+  const playerPriority = playerMove.priority || 0;
+  const rivalPriority = rivalMove.priority || 0;
+  if (playerPriority !== rivalPriority) return playerPriority > rivalPriority;
+
+  const playerSpeed = effectiveSpeed(player);
+  const rivalSpeed = effectiveSpeed(rival);
+  return playerSpeed === rivalSpeed ? Math.random() < 0.5 : playerSpeed > rivalSpeed;
+}
+
 function effectiveSpeed(mon) {
   return mon.status === 'paralysis' ? Math.round(mon.spd * 0.5) : mon.spd;
 }
@@ -899,6 +1242,8 @@ async function executeMove(attacker, defender, move, side) {
     if (Math.random() < 0.3) {
       attacker.status = null;
       setDialogue(`${attacker.name} acordou!`);
+      const side = sideOfMon(attacker);
+      if (side) updateStatusTag(side, attacker);
       await wait(800);
     }
     return;
@@ -909,7 +1254,7 @@ async function executeMove(attacker, defender, move, side) {
     return;
   }
 
-  setDialogue(`${side === 'player' ? 'Você' : 'O rival'} mandou ${attacker.name} usar ${move.name}!`);
+  setDialogue(`${side === 'player' ? 'Você' : RIVAL_TRAINER_NAME} mandou ${attacker.name} usar ${move.name}!`);
   await wait(700);
 
   animateAttack(side);
@@ -923,12 +1268,15 @@ async function executeMove(attacker, defender, move, side) {
   }
 
   if (move.power > 0) {
-    const { damage, multiplier } = calculateDamage(attacker, defender, move);
+    const { damage, multiplier, isCrit } = calculateDamage(attacker, defender, move);
     defender.hp = Math.max(0, defender.hp - damage);
-    animateHit(side === 'player' ? 'rival' : 'player');
-    updateHpBar(side === 'player' ? 'rival' : 'player', defender);
+    const defenderSide = side === 'player' ? 'rival' : 'player';
+    animateHit(defenderSide, isCrit);
+    showDamagePopup(defenderSide, damage, isCrit);
+    updateHpBar(defenderSide, defender);
     await wait(500);
 
+    if (isCrit) { setDialogue('Foi um golpe crítico!'); await wait(800); }
     if (multiplier > 1) { setDialogue('Foi super efetivo!'); await wait(800); }
     else if (multiplier > 0 && multiplier < 1) { setDialogue('Não foi muito efetivo...'); await wait(800); }
     else if (multiplier === 0) { setDialogue(`Não afetou ${defender.name}...`); await wait(800); }
@@ -945,21 +1293,32 @@ function animateAttack(side) {
   setTimeout(() => el.classList.remove('anim-attack-player', 'anim-attack-rival'), 450);
 }
 
-function animateHit(side) {
+function animateHit(side, isCrit) {
   const el = document.getElementById(side === 'player' ? 'player-combatant' : 'rival-combatant');
-  el.classList.add('anim-hit');
-  setTimeout(() => el.classList.remove('anim-hit'), 450);
+  const cls = isCrit ? 'anim-hit-crit' : 'anim-hit';
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), 550);
+}
+
+function showDamagePopup(side, amount, isCrit) {
+  const wrap = document.querySelector(`#${side}-combatant .sprite-wrap`);
+  const popup = document.createElement('div');
+  popup.className = 'dmg-popup' + (isCrit ? ' dmg-crit' : '');
+  popup.textContent = '-' + amount;
+  wrap.appendChild(popup);
+  setTimeout(() => popup.remove(), 900);
 }
 
 /* ---------------------- CÁLCULO DE DANO ---------------------- */
 
 function calculateDamage(attacker, defender, move) {
   const multiplier = getTypeMultiplier(move.type, defender.types);
+  const isCrit = Math.random() < 0.1; // 10% de chance de golpe crítico
   const atk = attacker.atk * attacker.atkModifier;
   const randomFactor = 0.85 + Math.random() * 0.15;
-  let raw = move.power * (atk / defender.def) * multiplier * randomFactor * 0.5;
+  let raw = move.power * (atk / defender.def) * multiplier * randomFactor * 0.5 * (isCrit ? 1.5 : 1);
   const damage = Math.max(multiplier === 0 ? 0 : 1, Math.round(raw));
-  return { damage, multiplier };
+  return { damage, multiplier, isCrit };
 }
 
 function getTypeMultiplier(moveType, defenderTypes) {
@@ -971,6 +1330,12 @@ function getTypeMultiplier(moveType, defenderTypes) {
   return mult;
 }
 
+function sideOfMon(mon) {
+  if (mon === currentPlayer()) return 'player';
+  if (mon === currentRival()) return 'rival';
+  return null;
+}
+
 function applyStatusEffect(mon, status) {
   mon.status = status;
   const labels = { poison: 'foi envenenado', paralysis: 'ficou paralisado', sleep: 'adormeceu', atkDown: 'teve o ataque reduzido' };
@@ -978,6 +1343,8 @@ function applyStatusEffect(mon, status) {
     mon.atkModifier = Math.max(0.5, mon.atkModifier - 0.25);
   }
   setDialogue(`${mon.name} ${labels[status] || 'foi afetado'}!`);
+  const side = sideOfMon(mon);
+  if (side) updateStatusTag(side, mon);
 }
 
 async function applyEndOfTurnStatus(mon) {
@@ -1016,7 +1383,7 @@ async function handleFaintIfNeeded() {
 
   if (rival.hp <= 0 && !rival.fainted) {
     rival.fainted = true;
-    setDialogue(`${rival.name} do rival desmaiou!`);
+    setDialogue(`${rival.name} de ${RIVAL_TRAINER_NAME} desmaiou!`);
     animateFaint('rival');
     await wait(1000);
     const nextIdx = state.rivalParty.findIndex((m, i) => i > state.rivalActiveIndex && !m.fainted);
@@ -1025,8 +1392,9 @@ async function handleFaintIfNeeded() {
       return true;
     }
     state.rivalActiveIndex = nextIdx;
+    await sendOutPokemon('rival', currentRival());
     renderBattleField();
-    setDialogue(`O rival mandou ${currentRival().name}!`);
+    setDialogue(`${RIVAL_TRAINER_NAME} enviou ${currentRival().name}!`);
     await wait(900);
   }
 
@@ -1041,6 +1409,7 @@ async function handleFaintIfNeeded() {
       return true;
     }
     state.playerActiveIndex = nextIdx;
+    await sendOutPokemon('player', currentPlayer());
     renderBattleField();
     renderMovePanel();
     setDialogue(`Vai, ${currentPlayer().name}!`);
@@ -1066,7 +1435,7 @@ async function handleVictory() {
   await wait(600);
   showScreen('screen-victory');
   document.getElementById('victory-message').textContent =
-    'Você provou que merece, sim, um feliz aniversário! Que seu novo ano seja tão épico quanto essa batalha. Parabéns! 🎉';
+    `Parabéns, ${PLAYER_TRAINER_NAME}! Você provou que merece, sim, um feliz aniversário! Que seu novo ano seja tão épico quanto essa batalha contra ${RIVAL_TRAINER_NAME}. 🎉`;
   launchConfetti();
 }
 
@@ -1094,6 +1463,8 @@ async function handleDefeat() {
   await wait(700);
   const lastFainted = state.playerParty[state.playerActiveIndex];
   document.getElementById('defeat-sprite').src = spriteUrl(lastFainted.dexId, true);
+  document.getElementById('defeat-message').textContent =
+    `${RIVAL_TRAINER_NAME} venceu essa batalha, ${PLAYER_TRAINER_NAME}... Parece que você ainda não merece o feliz aniversário. Tenta de novo!`;
   showScreen('screen-defeat');
 }
 
